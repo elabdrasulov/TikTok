@@ -66,3 +66,9 @@ class NewPasswordView(APIView):
         user.set_password(new_password)
         user.save()
         return Response(f"Your new password is {new_password}")
+
+@api_view(["GET"])
+def email_sending(request):
+    user = User.objects.get(email="turdalievargen32@gmail.com")
+    user.send_activation_code()
+    return Response('pizza')
