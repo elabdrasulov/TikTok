@@ -9,15 +9,10 @@ class PostSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
+        rep['user'] = instance.user.username
         rep['comments'] = CommentSerializer(instance.comments.all(), many=True).data
         rep['post_likes'] = instance.post_likes.all().count()
-        rep['favorites'] = instance.favorites.filter(favorited=True).count()
-        rep['liked_by_user'] = False
-
-        request = self.context.get('request')
-
-        if request.user.is_authenticated:
-            rep["liked_by_user"] = LikePost.objects.filter(user=request.user, product=instance).exists()
+        rep['favorites'] = instance.favorites.filter().count()
         
         return rep
 
@@ -46,11 +41,6 @@ class CommentSerializer(serializers.ModelSerializer):
         rep['post'] = instance.post.title
         rep['comment_likes'] = instance.comment_likes.all().count()
 
-        request = self.context.get('request')
-
-        if request.user.is_authenticated:
-            rep["liked_by_user"] = LikeComment.objects.filter(user=request.user, product=instance).exists()
-        
         return rep
 
 
@@ -68,3 +58,10 @@ class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favorite
         fields = '__all__'
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['post_id'] = instance.post.id
+        rep['user'] = instance.user.email
+        rep['post'] = instance.post.title
+        return rep

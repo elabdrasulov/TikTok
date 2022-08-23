@@ -1,9 +1,9 @@
 from django.shortcuts import get_object_or_404
 
-from rest_framework import filters
+from rest_framework import filters, mixins
 from rest_framework.decorators import api_view, action
-from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, DestroyAPIView, UpdateAPIView
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
@@ -17,47 +17,72 @@ from .permissions import *
 from .serializers import *
 
 
-class PostViewSet(ModelViewSet):
+class PostCreateView(CreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated, ]
+
+class PostListView(ListAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [AllowAny, ]
     filter_backends = [
         filters.OrderingFilter, 
         filters.SearchFilter, 
         DjangoFilterBackend,
     ]
-    filterset_fields = ['title', 'user', 'videos_tags', ]
-    search_fields = ['title', 'user', 'videos_tags','category__title',]
-    ordering_fields = ['title', 'user', ]
+    filterset_fields = ['title', 'video_tags', ]
+    search_fields = ['title', 'video_tags', 'user__username', 'categories__title']
+    ordering_fields = ['title', ]
 
-    @action(methods=['GET'], detail=True)
-    def view(self, request, pk):
-        video = get_object_or_404(Post, id=pk)
+class PostDetailView(RetrieveAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [AllowAny,]
+
+    def get(self, request,  pk, *args, **kwargs):
+        video =get_object_or_404(Post, pk=pk)
         video.views += 1
         video.save()
-        return Response("View added")
+        serializer =PostSerializer(video)
+        return Response(serializer.data)
 
-    @swagger_auto_schema(manual_parameters=[
-        openapi.Parameter("title", 
-                          openapi.IN_QUERY, 
-                          "search products by title", 
-                          type=openapi.TYPE_STRING)])
-    @action(methods=['GET'], detail=False)
-    def search(self, request):
-        title = request.query_params.get("title")
-        queryset = self.get_queryset()
-        if title:
-            queryset = queryset.filter(title__icontains=title)
+class PostUpdateView(UpdateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [IsAdminOrAuthor, ]
 
-        serializer = PostSerializer(queryset, many=True, context={"request":request})
-        return Response(serializer.data, 200)
+class PostDeleteView(DestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [IsAdminOrAuthor, ]
+
+    # @swagger_auto_schema(manual_parameters=[
+    #     openapi.Parameter("title", 
+    #                       openapi.IN_QUERY, 
+    #                       "search products by title", 
+    #                       type=openapi.TYPE_STRING)])
+    # @action(methods=['GET'], detail=False)
+    # def search(self, request):
+    #     title = request.query_params.get("title")
+    #     queryset = self.get_queryset()
+    #     if title:
+    #         queryset = queryset.filter(title__icontains=title)
+
+    #     serializer = PostSerializer(queryset, many=True, context={"request":request})
+    #     return Response(serializer.data, 200)
 
 class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticatedOrReadOnly, ]
 
-class CommentViewSet(ModelViewSet):
+class CommentViewSet(
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet
+):
 
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
@@ -67,6 +92,14 @@ class CommentViewSet(ModelViewSet):
         context = super().get_serializer_context()
         context['request'] = self.request
         return context
+
+class CommentListDetailView(
+    ListAPIView, RetrieveAPIView
+):
+
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [AllowAny, ]
 
 class FavoriteView(ListAPIView):
     queryset = Favorite.objects.all()
@@ -80,30 +113,36 @@ class FavoriteView(ListAPIView):
 @api_view(['GET'])
 def add_to_favorite(request, v_id):
     user = request.user
-    video = get_object_or_404(Post, id=v_id)
+    post = get_object_or_404(Post, id=v_id)
 
-    if Favorite.objects.filter(user=user, video=video).exists():
-        Favorite.objects.filter(user=user, video=video).delete()
+    if Favorite.objects.filter(user=user, post=post).exists():
+        Favorite.objects.filter(user=user, post=post).delete()
         return Response('Deleted from favorite')
     else:
-        Favorite.objects.create(user=user, video=video, favorited=True)
+        Favorite.objects.create(user=user, post=post)
         return Response('Added to favorites')
-
-# @api_view (['GET'])
-# def view(request, v_id):
-#     video = get_object_or_404(Post, id=v_id)
-#     video.views += 1
-#     video.save()
-#     return Response("View added")
 
 
 @api_view(['GET'])
 def toggle_post_like(request, v_id):
     user = request.user
-    video = get_object_or_404(Post, id=v_id)
+    post = get_object_or_404(Post, id=v_id)
 
-    if LikePost.objects.filter(user=user, video=video).exists():
-        LikePost.objects.filter(user=user, video=video).delete()
+    if LikePost.objects.filter(user=user, post=post).exists():
+        LikePost.objects.filter(user=user, post=post).delete()
+        return Response("Like untoggled")
     else:
-        LikePost.objects.create(user=user, video=video)
-    return Response("Like toggled", 200)
+        LikePost.objects.create(user=user, post=post)
+    return Response("Like toggled")
+
+@api_view(['GET'])
+def toggle_comment_like(request, v_id):
+    user = request.user
+    comment = get_object_or_404(Comment, id=v_id)
+
+    if LikeComment.objects.filter(user=user, comment=comment).exists():
+        LikeComment.objects.filter(user=user, comment=comment).delete()
+        return Response("Like untoggled")
+    else:
+        LikeComment.objects.create(user=user, comment=comment)
+    return Response("Like toggled")

@@ -69,6 +69,12 @@ class NewPasswordView(APIView):
 
 @api_view(["GET"])
 def email_sending(request):
-    user = User.objects.get(email="turdalievargen32@gmail.com")
+    user = User.objects.get(email="elabdrasulov@gmail.com")
     user.send_activation_code()
-    return Response('pizza')
+    return Response('Check your email and activate your account')
+
+@api_view(["GET"])
+def password_confirmation(request):
+    user = User.objects.get(email="elabdrasulov@gmail.com")
+    user.password_confirm()
+    return Response('Check your email for password changes')

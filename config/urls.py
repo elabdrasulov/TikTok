@@ -35,7 +35,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('user_account/', include('apps.user_account.urls')),
     path('docs/', schema_view.with_ui('swagger')),
-
+    path('video/', include('apps.video.urls')),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
