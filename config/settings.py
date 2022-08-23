@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
     'django_filters',
+    'whitenoise.runserver_nostatic',
+    'corsheaders',
 
     #apps
     'apps.user_account',
