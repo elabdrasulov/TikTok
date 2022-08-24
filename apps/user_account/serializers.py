@@ -1,7 +1,12 @@
-from rest_framework import serializers
+from dataclasses import fields
 from django.contrib.auth import get_user_model
+from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+
+from apps.video.serializers import PostSerializer
+
+from .models import *
 
 User = get_user_model()
 
@@ -89,3 +94,71 @@ class LogoutSerializer(serializers.Serializer):
             RefreshToken(self.token).blacklist()
         except TokenError:
             self.fail('bad_token')
+
+class FollowingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserFollowing
+        fields = [
+            "id", "following_user_id", "created", 
+        ]
+    
+    # def to_representation(self, instance):
+    #     rep = super().to_representation(instance)
+    #     rep['following_user_id'] = 
+    #     return rep
+
+class FollowersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserFollowing
+        fields = [
+            "id", "user_id", "created",
+        ]
+
+# class ProfileView(serializers.ModelSerializer):
+#     class Meta:
+#         model = UserFollowing
+#         fields = '__all__'
+
+#     def to_representation(self, instance):
+#         rep = super().to_representation(instance)
+#         rep['follow'] = instance.user.following.all().count()
+#         rep['followers'] = instance.objects.filter(following_user_id=user).count()
+#         return rep
+
+class ProfileSerializer(serializers.ModelSerializer):
+
+    following = serializers.SerializerMethodField()
+    followers = serializers.SerializerMethodField()
+    follows_count = serializers.SerializerMethodField()
+    followers_count = serializers.SerializerMethodField()
+
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "email",
+            "username",
+            "following",
+            "followers",
+            "follows_count",
+            "followers_count",
+        )
+
+    def get_following(self, obj):
+        return FollowingSerializer(obj.following.all(), many=True).data
+
+    def get_followers(self, obj):
+        return FollowersSerializer(obj.followers.all(), many=True).data
+
+    def get_follows_count(self, obj):
+        return obj.following.all().count()
+
+    def get_followers_count(self, obj):
+        return obj.followers.all().count()
+
+
+class UserFollowingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserFollowing
+        fields = '__all__'

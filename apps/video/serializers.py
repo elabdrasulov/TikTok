@@ -13,6 +13,7 @@ class PostSerializer(serializers.ModelSerializer):
         rep['comments'] = CommentSerializer(instance.comments.all(), many=True).data
         rep['post_likes'] = instance.post_likes.all().count()
         rep['favorites'] = instance.favorites.filter().count()
+        rep['categories'] = CategorySerializer(instance.categories.all(), many=True).data
         
         return rep
 
@@ -20,11 +21,6 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = '__all__'
-
-    def to_representation(self, instance):
-        rep = super().to_representation(instance)
-        rep['categories'] = instance.title
-        return rep
 
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -42,7 +38,6 @@ class CommentSerializer(serializers.ModelSerializer):
         rep['comment_likes'] = instance.comment_likes.all().count()
 
         return rep
-
 
 class LikePostSerializer(serializers.ModelSerializer):
     class Meta:

@@ -41,8 +41,8 @@ class User(AbstractUser):
     username = models.CharField(max_length=100, blank=True, null=True)
     activation_code = models.CharField(max_length=8, blank=True)
     
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['name', 'last_name', 'username']
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username", ]
 
     objects = CustomUserManager()
 
@@ -66,15 +66,22 @@ class User(AbstractUser):
 
     def password_confirm(self):
         password_confirm.delay(self.id)
-        # activation_url = f'http://127.0.0.1:8000/user_account/password_confirm/{self.activation_code}'
-        # message = f"""
-        # Do you want to change password?
-        # Confirm password changes: {activation_url}
-        # """
-        # send_mail(
-        #     "Please confirm new changes", 
-        #     message, "test@gmail.com", [self.email, ]
-        # )
+
 
     def __str__(self) -> str:
         return f'{self.username} -> {self.email}'
+
+class UserFollowing(models.Model):
+    user_id = models.ForeignKey(User, related_name="following", on_delete=models.CASCADE)
+    following_user_id = models.ForeignKey(User, related_name="followers", on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user_id','following_user_id'],  name="unique_followers")
+        ]
+
+        ordering = ["-created"]
+
+    def __str__(self):
+        return f"{self.user_id} follows {self.following_user_id}"
