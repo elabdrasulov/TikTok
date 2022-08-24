@@ -82,7 +82,7 @@ def password_confirmation(request):
     user.password_confirm()
     return Response('Check your email for password changes')
 
-class UserFollowingView(CreateAPIView, DestroyAPIView):
+class UserFollowingView(CreateAPIView):
 
     queryset = UserFollowing.objects.all()
     serializer_class = UserFollowingSerializer
