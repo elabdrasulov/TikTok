@@ -16,7 +16,6 @@ from .models import *
 from .permissions import *
 from .serializers import *
 
-
 User = get_user_model()
 
 class RegisterAPIView(APIView):
@@ -25,7 +24,9 @@ class RegisterAPIView(APIView):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response('Account created')
+            return Response(
+                'Account created. Please check your email to activate your account.'
+            )
 
 @api_view(["GET"])
 def activate(request, activation_code):
@@ -59,7 +60,7 @@ class ForgotPasswordView(APIView):
         serializer = ForgotSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            message = "Please, confirm your email"
+            message = "Please, confirm your new password"
             return Response(message)
 
 class NewPasswordView(APIView):
@@ -69,18 +70,6 @@ class NewPasswordView(APIView):
         user.set_password(new_password)
         user.save()
         return Response(f"Your new password is {new_password}")
-
-@api_view(["GET"])
-def email_sending(request):
-    user = User.objects.get(email="elabdrasulov@gmail.com")
-    user.send_activation_code()
-    return Response('Check your email and activate your account')
-
-@api_view(["GET"])
-def password_confirmation(request):
-    user = User.objects.get(email="elabdrasulov@gmail.com")
-    user.password_confirm()
-    return Response('Check your email for password changes')
 
 class UserFollowingView(CreateAPIView):
 

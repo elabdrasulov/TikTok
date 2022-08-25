@@ -2,13 +2,7 @@ from django.urls import path
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .views import ForgotPasswordView, LoginView, LogoutAPIView, NewPasswordView, ProfileDetailView, ProfileView, RegisterAPIView, UserFollowerView, UserFollowingView, activate, email_sending, password_confirmation
-
-
-# from rest_framework.routers import DefaultRouter
-
-# router = DefaultRouter()
-# router.register("follow", )
+from .views import ForgotPasswordView, LoginView, LogoutAPIView, NewPasswordView, ProfileDetailView, ProfileView, RegisterAPIView, UserFollowerView, UserFollowingView, activate
 
 
 urlpatterns = [
@@ -20,8 +14,6 @@ urlpatterns = [
     path('password_confirm/<str:activation_code>', NewPasswordView.as_view()),
     path('login/', LoginView.as_view()),
     path('logout/', LogoutAPIView.as_view()),
-    path('send_email/', email_sending),
-    path('send_new_password/', password_confirmation),
     path('profile/', ProfileView.as_view()),
     path('profile/<int:pk>/', ProfileDetailView.as_view()),
     path('profile/follow/', UserFollowingView.as_view()),

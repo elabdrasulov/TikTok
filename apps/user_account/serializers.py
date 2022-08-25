@@ -7,6 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from apps.video.serializers import PostSerializer
 
 from .models import *
+from .utils import *
 
 User = get_user_model()
 
@@ -36,9 +37,10 @@ class RegisterSerializer(serializers.ModelSerializer):
             )
         return attrs
 
-    def create(self, validated_data):
-        print("CREATING USER WITH DATA:", validated_data)
-        return User.objects.create_user(**validated_data)
+    def save(self):
+        data = self.validated_data
+        user = User.objects.create_user(**data)
+        user.send_activation_code()
 
 class ForgotSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -102,10 +104,6 @@ class FollowingSerializer(serializers.ModelSerializer):
             "id", "following_user_id", "created", 
         ]
     
-    # def to_representation(self, instance):
-    #     rep = super().to_representation(instance)
-    #     rep['following_user_id'] = 
-    #     return rep
 
 class FollowersSerializer(serializers.ModelSerializer):
     class Meta:
@@ -113,17 +111,6 @@ class FollowersSerializer(serializers.ModelSerializer):
         fields = [
             "id", "user_id", "created",
         ]
-
-# class ProfileView(serializers.ModelSerializer):
-#     class Meta:
-#         model = UserFollowing
-#         fields = '__all__'
-
-#     def to_representation(self, instance):
-#         rep = super().to_representation(instance)
-#         rep['follow'] = instance.user.following.all().count()
-#         rep['followers'] = instance.objects.filter(following_user_id=user).count()
-#         return rep
 
 class ProfileSerializer(serializers.ModelSerializer):
 

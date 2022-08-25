@@ -110,6 +110,15 @@ class FavoriteView(ListAPIView):
         new_queryset = queryset.filter(user=self.request.user)
         return new_queryset
 
+class LikePostView(ListAPIView):
+    queryset = LikePost.objects.all()
+    serializer_class = LikePostSerializer
+    permission_classes = [IsAuthenticated, ]
+
+    def filter_queryset(self, queryset):
+        new_queryset = queryset.filter(user=self.request.user)
+        return new_queryset
+
 @api_view(['GET'])
 def add_to_favorite(request, v_id):
     user = request.user

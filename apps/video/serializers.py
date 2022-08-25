@@ -43,6 +43,12 @@ class LikePostSerializer(serializers.ModelSerializer):
     class Meta:
         model = LikePost
         fields = '__all__'
+    
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['user'] = instance.user.email
+        # rep['posts'] = PostSerializer(instance.post).data
+        return rep
 
 class LikeCommentSerializer(serializers.ModelSerializer):
     class Meta:
