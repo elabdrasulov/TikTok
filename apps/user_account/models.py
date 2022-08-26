@@ -69,7 +69,7 @@ class User(AbstractUser):
         self.generate_activation_code()
         self.set_activation_code()
         # activation_url = f'http://127.0.0.1:8000/user_account/activate/{self.activation_code}'
-        activation_url = f'https:/tektonik.herokuapp.com/user_account/password_confirm/{self.activation_code}'
+        activation_url = f'https:/tektonik.herokuapp.com/user_account/activate/{self.activation_code}'
         message = f'Activate your account, following this link {activation_url}'
         send_mail("Activate account", message, "cinema@gmail.com", [self.email, ])
 
