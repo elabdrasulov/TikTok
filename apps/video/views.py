@@ -35,28 +35,6 @@ class PostListView(ListAPIView):
     search_fields = ['title', 'video_tags', 'user__username', 'categories__title']
     ordering_fields = ['title', ]
 
-class PostDetailView(RetrieveAPIView):
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer
-    permission_classes = [AllowAny,]
-
-    def get(self, request,  pk, *args, **kwargs):
-        video =get_object_or_404(Post, pk=pk)
-        video.views += 1
-        video.save()
-        serializer =PostSerializer(video)
-        return Response(serializer.data)
-
-class PostUpdateView(UpdateAPIView):
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer
-    permission_classes = [IsAdminOrAuthor, ]
-
-class PostDeleteView(DestroyAPIView):
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer
-    permission_classes = [IsAdminOrAuthor, ]
-
     @swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter(
@@ -105,6 +83,29 @@ class PostDeleteView(DestroyAPIView):
             queryset, many=True, context={"request":request}
         )
         return Response(serializer.data, 200)
+
+class PostDetailView(RetrieveAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [AllowAny,]
+
+    def get(self, request,  pk, *args, **kwargs):
+        video =get_object_or_404(Post, pk=pk)
+        video.views += 1
+        video.save()
+        serializer =PostSerializer(video)
+        return Response(serializer.data)
+
+class PostUpdateView(UpdateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [IsAdminOrAuthor, ]
+
+class PostDeleteView(DestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [IsAdminOrAuthor, ]
+
 
 class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.all()
