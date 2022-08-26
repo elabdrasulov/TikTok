@@ -40,7 +40,13 @@ class RegisterSerializer(serializers.ModelSerializer):
     def save(self):
         data = self.validated_data
         user = User.objects.create_user(**data)
+        user.set_activation_code()
         user.send_activation_code()
+
+    # def save(self):
+    #     data = self.validated_data
+    #     user = User.objects.create_user(**data)
+    #     user.send_activation_code()
 
 class ForgotSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -58,6 +64,14 @@ class ForgotSerializer(serializers.Serializer):
         user = User.objects.get(**data)
         user.set_activation_code()
         user.password_confirm()
+
+class ChangePasswordSerializer(serializers.Serializer):
+    model = User
+
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(
+        required=True, min_length=8, write_only=True
+    )
 
 class LoginSerializer(TokenObtainPairSerializer):
     email = serializers.EmailField(required=True)

@@ -5,7 +5,7 @@ from drf_yasg.utils import swagger_auto_schema
 
 from rest_framework import status, permissions
 from rest_framework.decorators import api_view
-from rest_framework.generics import get_object_or_404, GenericAPIView, ListAPIView, RetrieveAPIView, CreateAPIView, DestroyAPIView
+from rest_framework.generics import get_object_or_404, GenericAPIView, ListAPIView, RetrieveAPIView, CreateAPIView, DestroyAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -36,6 +36,32 @@ def activate(request, activation_code):
     user.save()
     return redirect("http://127.0.0.1:3000/")
 
+class ChangePasswordView(UpdateAPIView):
+    serializer_class = ChangePasswordSerializer
+    model = User
+    permission_classes = [IsAuthenticated, ] 
+
+    @swagger_auto_schema(request_body=ChangePasswordSerializer)
+    def update(self, request, *args, **kwargs):
+        object = request.user
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            if not object.check_password(request.data.get("old_password")):
+                return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+
+            object.set_password(request.data.get("new_password"))
+            object.is_active = True
+            object.save()
+            response = {
+                'status': 'success',
+                'code': status.HTTP_200_OK,
+                'message': 'Password updated successfully'
+            }
+
+            return Response(response)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginView(TokenObtainPairView):
     serializer_class = LoginSerializer

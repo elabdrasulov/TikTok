@@ -57,20 +57,54 @@ class PostDeleteView(DestroyAPIView):
     serializer_class = PostSerializer
     permission_classes = [IsAdminOrAuthor, ]
 
-    # @swagger_auto_schema(manual_parameters=[
-    #     openapi.Parameter("title", 
-    #                       openapi.IN_QUERY, 
-    #                       "search products by title", 
-    #                       type=openapi.TYPE_STRING)])
-    # @action(methods=['GET'], detail=False)
-    # def search(self, request):
-    #     title = request.query_params.get("title")
-    #     queryset = self.get_queryset()
-    #     if title:
-    #         queryset = queryset.filter(title__icontains=title)
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "title", 
+                openapi.IN_QUERY, 
+                "search videos by title", 
+                type=openapi.TYPE_STRING
+            )
+        ]
+    )
+    @action(methods=['GET'], detail=False)
+    def search(self, request):
+        title = request.query_params.get("title")
+        queryset = self.get_queryset()
+        if title:
+            queryset = queryset.filter(title__icontains=title)
 
-    #     serializer = PostSerializer(queryset, many=True, context={"request":request})
-    #     return Response(serializer.data, 200)
+        serializer = PostSerializer(
+            queryset, many=True, context={"request":request}
+        )
+        return Response(serializer.data, 200)
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "categories", 
+                openapi.IN_QUERY, 
+                "search videos by categories", 
+                type=openapi.TYPE_STRING
+            )
+        ]
+    )
+    @action(methods=['GET'], detail=False)
+    def recommendations(self, request):
+        categories_title = request.query_params.get("categories")
+        categories = Category.objects.get(title__icontains=categories_title)
+        
+        queryset = self.get_queryset()
+        queryset = queryset.filter(categories=categories)
+
+        queryset = sorted(
+            queryset, key=lambda post: post.post_likes.all().count(), reverse=True
+        )
+
+        serializer = PostSerializer(
+            queryset, many=True, context={"request":request}
+        )
+        return Response(serializer.data, 200)
 
 class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.all()
@@ -155,3 +189,12 @@ def toggle_comment_like(request, v_id):
     else:
         LikeComment.objects.create(user=user, comment=comment)
     return Response("Like toggled")
+
+@api_view(["GET"])
+def show_similar_videos(request, pk):
+
+    post = get_object_or_404(Post, id=pk)
+    relative_posts = Post.objects.filter(categories__id__in=post.categories.all())
+    serializer = PostSerializer(relative_posts, many=True)
+    return Response(serializer.data)
+

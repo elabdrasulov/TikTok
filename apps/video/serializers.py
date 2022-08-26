@@ -14,6 +14,7 @@ class PostSerializer(serializers.ModelSerializer):
         rep['post_likes'] = instance.post_likes.all().count()
         rep['favorites'] = instance.favorites.filter().count()
         rep['categories'] = CategorySerializer(instance.categories.all(), many=True).data
+        # rep['videos'] = instance.videos
         
         return rep
 

@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.core.mail import send_mail
-from .utils import send_activation_code, password_confirm
+# from .utils import send_activation_code, password_confirm
 
 class CustomUserManager(BaseUserManager):
     use_in_migrations = True
@@ -59,12 +59,26 @@ class User(AbstractUser):
             self.activation_code = code
             self.save()
 
-    def send_activation_code(self):
-        send_activation_code.delay(self.id)
+    # def send_activation_code(self):
+    #     send_activation_code.delay(self.id)
         
+    # def password_confirm(self):
+    #     password_confirm.delay(self.id)
+
+    def send_activation_code(self):
+        self.generate_activation_code()
+        self.set_activation_code()
+        activation_url = f'http://127.0.0.1:8000/user_account/activate/{self.activation_code}'
+        message = f'Activate your account, following this link {activation_url}'
+        send_mail("Activate account", message, "cinema@gmail.com", [self.email, ])
 
     def password_confirm(self):
-        password_confirm.delay(self.id)
+        activation_url = f'http://127.0.0.1:8000/user_account/password_confirm/{self.activation_code}'
+        message = f"""
+        Do you want to change password?
+        Confirm password changes: {activation_url}
+        """
+        send_mail("Please confirm", message, "cinema@gmail.com", [self.email, ])
 
 
     def __str__(self) -> str:
