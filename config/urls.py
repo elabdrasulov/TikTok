@@ -17,6 +17,7 @@ from django.contrib import admin
 from django.conf.urls.static import static
 from django.urls import path, include
 from django.conf import settings
+from django.urls import re_path
 
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
@@ -34,8 +35,12 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('user_account/', include('apps.user_account.urls')),
+    path('social_login/', include(('apps.social_login.urls', 'apps.social_login'), namespace="social_login")),
     path('docs/', schema_view.with_ui('swagger')),
     path('video/', include('apps.video.urls')),
+    path('chat/', include('apps.chat.urls')),
+    # path('auth/', include('drf_social_oauth2.urls', namespace='drf')),
+    re_path(r'^auth/', include('drf_social_oauth2.urls', namespace='drf'))
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -35,6 +35,9 @@ class PostListView(ListAPIView):
     search_fields = ['title', 'video_tags', 'user__username', 'categories__title']
     ordering_fields = ['title', ]
 
+    # def get_permissions(self):
+    #     return super().get_permissions()
+
     @swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter(
@@ -66,6 +69,7 @@ class PostListView(ListAPIView):
                 type=openapi.TYPE_STRING
             )
         ]
+        # query_serializer=PostSerializer
     )
     @action(methods=['GET'], detail=False)
     def recommendations(self, request):
@@ -90,7 +94,7 @@ class PostDetailView(RetrieveAPIView):
     permission_classes = [AllowAny,]
 
     def get(self, request,  pk, *args, **kwargs):
-        video =get_object_or_404(Post, pk=pk)
+        video = get_object_or_404(Post, pk=pk)
         video.views += 1
         video.save()
         serializer =PostSerializer(video)
@@ -180,9 +184,9 @@ def toggle_post_like(request, v_id):
     return Response("Like toggled")
 
 @api_view(['GET'])
-def toggle_comment_like(request, v_id):
+def toggle_comment_like(request, c_id):
     user = request.user
-    comment = get_object_or_404(Comment, id=v_id)
+    comment = get_object_or_404(Comment, id=c_id)
 
     if LikeComment.objects.filter(user=user, comment=comment).exists():
         LikeComment.objects.filter(user=user, comment=comment).delete()

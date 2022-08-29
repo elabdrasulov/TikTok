@@ -23,6 +23,6 @@ urlpatterns = [
     path('favorites/', FavoriteView.as_view()),
     path('like_post/<int:v_id>/', toggle_post_like),
     path('liked_videos/', LikePostView.as_view()),
-    path('like_comment/<int:v_id>/', toggle_comment_like),
+    path('like_comment/<int:c_id>/', toggle_comment_like),
     path('show_similar_videos/<int:pk>/', show_similar_videos)
 ]

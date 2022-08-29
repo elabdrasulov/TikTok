@@ -1,6 +1,7 @@
 from dataclasses import fields
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
@@ -77,21 +78,46 @@ class LoginSerializer(TokenObtainPairSerializer):
     email = serializers.EmailField(required=True)
     password = serializers.CharField(required=True, min_length=8)
 
+    tokens = serializers.SerializerMethodField()
+
+    def get_tokens(self, obj):
+        user = User.objects.get(email=obj['email'])
+
+        return {
+            'refresh': user.tokens()['refresh'],
+            'access': user.tokens()['access']
+        }
+
     def validate_email(self, email):
         if not User.objects.filter(email=email).exists():
             raise serializers.ValidationError('Email does not exist')
         return email
 
     def validate (self, attrs):
-        email = attrs.get('email')
-        password = attrs.pop('password')
+        email = attrs.get('email', )
+        password = attrs.pop('password', )
+        filtered_user_by_email = User.objects.filter(email=email)
+        # user = auth.authenticate(email=email, password=password)
         user = User.objects.get(email=email)
+
+        if filtered_user_by_email.exists() and filtered_user_by_email[0].auth_provider != 'email':
+            raise AuthenticationFailed(
+                detail='Please continue your login using ' + filtered_user_by_email[0].auth_provider)
+
         if not user.check_password(password):
-            raise serializers.ValidationError('invalid password')
+            raise serializers.ValidationError('Invalid password')
+
+        if not user.is_active:
+            raise AuthenticationFailed('Account disabled, contact admin')
+
+        # if not user.is_verified:
+        #     raise AuthenticationFailed('Email is not verified')
+
         if user and user.is_active:
             refresh = self.get_token(user)
             attrs['refresh']=str(refresh)
             attrs['access']=str(refresh.access_token)
+
         return attrs
 
 class LogoutSerializer(serializers.Serializer):
@@ -140,6 +166,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "id",
             "email",
             "username",
+            "image",
             "following",
             "followers",
             "follows_count",
