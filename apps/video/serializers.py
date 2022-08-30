@@ -56,7 +56,7 @@ class LikePostSerializer(serializers.ModelSerializer):
     class Meta:
         model = LikePost
         # fields = '__all__'
-        exclude = ['id', ]
+        exclude = ['id']
     
     def to_representation(self, instance):
         rep = super().to_representation(instance)
