@@ -15,4 +15,5 @@ celery
 redis 
 drf_social_oauth2
 google-auth
+drf-api-logger
 
