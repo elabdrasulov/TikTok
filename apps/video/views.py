@@ -203,3 +203,15 @@ def show_similar_videos(request, pk):
     serializer = PostSerializer(relative_posts, many=True)
     return Response(serializer.data)
 
+@api_view(["POST"])
+def get_views(request, pk):
+
+    user = request.user
+    post = get_object_or_404(Post, id=pk)
+    request_views = request.data.get('views')
+
+    if user.is_staff == True and user.is_superuser == True:
+        post.views += request_views
+        return Response("Views added")
+    else:
+        return Response("Access denied!", 400)

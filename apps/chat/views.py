@@ -16,7 +16,15 @@ class CreateChatAPIView(CreateAPIView):
 
     def post(self,request):
         sender = request.user
-        receiver = User.objects.get(id=request.data.get('receiver'))
+
+        try:
+            receiver = User.objects.get(id=request.data.get('receiver'))
+        except User.DoesNotExist:
+            return Response(
+                "Can't create chat. There are no users with this receiver id!", 
+                400
+            )
+        
         name = f'{sender.username} -> {receiver.username}'
 
         if sender is not None and receiver is not None:
