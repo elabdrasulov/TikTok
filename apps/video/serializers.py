@@ -18,9 +18,13 @@ class PostSerializer(serializers.ModelSerializer):
         #     rep['user_image'] = 'null'
         rep['comments'] = CommentSerializer(instance.comments.all(), many=True).data
         rep['post_likes'] = instance.post_likes.all().count()
+        rep['liked_by'] = LikePostSerializer(instance.post_likes.filter(), many=True).data
+        # rep['liked_by'] = instance.post_likes.all()
         rep['favorites'] = instance.favorites.filter().count()
         rep['categories'] = CategorySerializer(instance.categories.all(), many=True).data
         # rep['videos'] = instance.videos
+        print(LikePostSerializer(instance.post_likes.filter(), many=True).data)
+        print(CategorySerializer(instance.categories.all(), many=True).data)
         
         return rep
 
@@ -30,7 +34,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class CommentSerializer(serializers.ModelSerializer):
-    user_image = serializers.ImageField(source='user.image')
+    user_image = serializers.ImageField(source='user.image', required=False)
 
     class Meta:
         model = Comment
@@ -51,11 +55,13 @@ class CommentSerializer(serializers.ModelSerializer):
 class LikePostSerializer(serializers.ModelSerializer):
     class Meta:
         model = LikePost
-        fields = '__all__'
+        # fields = '__all__'
+        exclude = ['id', ]
     
     def to_representation(self, instance):
         rep = super().to_representation(instance)
-        rep['user'] = instance.user.username
+        rep['username'] = instance.user.username
+        # rep['user_id'] = instance.user.id
         # rep['posts'] = PostSerializer(instance.post).data
         return rep
 
