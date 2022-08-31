@@ -2,8 +2,8 @@ from django.urls import path
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .views import ChangePasswordView, ForgotPasswordView, LoginView, LogoutAPIView, NewPasswordView, ProfileDetailView, ProfileView, RegisterAPIView, UserFollowerView, UserFollowingView, activate
-
+# from .views import ChangePasswordView, ForgotPasswordView, LoginView, LogoutAPIView, NewPasswordView, ProfileDetailView, ProfileView, RegisterAPIView, UserFollowerView, UserFollowingView, activate
+from .views import *
 
 urlpatterns = [
     path('register/', RegisterAPIView.as_view()),
@@ -15,7 +15,8 @@ urlpatterns = [
     path('password_confirm/<str:activation_code>/', NewPasswordView.as_view()),
     path('login/', LoginView.as_view()),
     path('logout/', LogoutAPIView.as_view()),
-    path('profile/', ProfileView.as_view()),
+    path('profile/', MyProfileView.as_view()),
+    path('profiles/', ProfileView.as_view()),
     path('profile/<int:pk>/', ProfileDetailView.as_view()),
     path('profile/follow/', UserFollowingView.as_view()),
     # path('profile/follow/', AddFollower.as_view()),

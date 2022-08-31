@@ -12,6 +12,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
+from apps.video.models import Post
+
 from .models import *
 from .permissions import *
 from .serializers import *
@@ -120,11 +122,28 @@ class UserFollowerView(CreateAPIView, DestroyAPIView):
     serializer_class = FollowersSerializer
     permission_classes = [IsAuthenticated, IsAuthor, ]
 
+class MyProfileView(ListAPIView):
+
+    queryset = User.objects.all()
+    serializer_class = ProfileSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly, ]
+
+    def get(self, request):
+
+        user = request.user
+        profile = get_object_or_404(User, id=user.id )
+
+        serializer = ProfileSerializer(profile).data
+        return Response(serializer)
+
+
 class ProfileView(ListAPIView):
 
     queryset = User.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, ]
+
+
 
 class ProfileDetailView(RetrieveAPIView):
 
