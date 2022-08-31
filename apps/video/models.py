@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 
+from .check_size import file_size
+
 User = get_user_model()
 
 class Category(models.Model):
@@ -15,18 +17,12 @@ class Post(models.Model):
     title = models.CharField(max_length=100)
     user = models.ForeignKey(User, related_name='posts', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='images', blank=True, null=True)
-    video = models.FileField(upload_to='videos', blank=True, null=True)
+    video = models.FileField(upload_to='videos', validators=[file_size], blank=True, null=True)
     video_tags = models.TextField(max_length=1000, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     description = models.TextField(blank=True, null=True)
     views = models.IntegerField(blank=True, null=True, default=0)
     # similars = models.ManyToManyField(Category, related_name='similars')
-
-    # @property
-    # def videos(self):
-    #     videos = [video.video for video in self.]
-    #     return videos
-
 
     def __str__(self):
         return self.title
