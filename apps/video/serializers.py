@@ -3,7 +3,7 @@ from rest_framework import serializers
 from .models import *
 
 class PostSerializer(serializers.ModelSerializer):
-    user_image = serializers.ImageField(source='user.image')
+    user_image = serializers.ImageField(source='user.image', required=False)
 
     class Meta:
         model = Post
