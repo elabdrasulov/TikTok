@@ -19,6 +19,7 @@ class PostSerializer(serializers.ModelSerializer):
         rep['comments'] = CommentSerializer(instance.comments.all(), many=True).data
         rep['post_likes'] = instance.post_likes.all().count()
         rep['liked_by'] = LikePostSerializer(instance.post_likes.filter(), many=True).data
+        rep['favorited_by'] = FavoriteSerializer(instance.favorites.filter(), many=True).data
         # rep['liked_by'] = instance.post_likes.all()
         rep['favorites'] = instance.favorites.filter().count()
         rep['categories'] = CategorySerializer(instance.categories.all(), many=True).data
@@ -72,6 +73,7 @@ class LikeCommentSerializer(serializers.ModelSerializer):
 
 class FavoriteSerializer(serializers.ModelSerializer):
     user_image = serializers.ImageField(source='user.image')
+    video = serializers.FileField(source='post.video')
 
     class Meta:
         model = Favorite
@@ -82,4 +84,8 @@ class FavoriteSerializer(serializers.ModelSerializer):
         rep['post_id'] = instance.post.id
         rep['user'] = instance.user.username
         rep['post'] = instance.post.title
+        rep['favorites'] = instance.post.favorites.filter().count()
+        rep['post_likes'] = instance.post.post_likes.all().count()
+        rep['comments'] = CommentSerializer(instance.post.comments.all(), many=True).data
+
         return rep

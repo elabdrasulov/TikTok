@@ -1,5 +1,6 @@
-from django.shortcuts import redirect
 from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
+from django.shortcuts import redirect
 
 from drf_yasg.utils import swagger_auto_schema
 
@@ -83,6 +84,7 @@ class LogoutAPIView(GenericAPIView):
 
 class ForgotPasswordView(APIView):
     @swagger_auto_schema(request_body=ForgotSerializer)
+
     def post(self, request):
         data = request.POST
         serializer = ForgotSerializer(data=request.data)
@@ -90,6 +92,30 @@ class ForgotPasswordView(APIView):
             serializer.save()
             message = "Please, confirm your new password"
             return Response(message)
+
+    # def post(self, request):
+    #     data = request.POST
+
+    #     try:
+    #         user = User.objects.get(email=request.data.get('email'))
+    #     except User.DoesNotExist:
+    #         return Response("There is no user with such email")
+        
+    #     # print(user.email)
+    #     serializer = ForgotSerializer(data=request.data)
+
+    #     if serializer.is_valid(raise_exception=True):
+    #         serializer.save()
+    #         # print(user)
+    #         new_password = user.generate_activation_code()
+    #         user.set_password(new_password)
+    #         user.save()
+    #         message = "We've sent a new generated password to submitted email."
+
+    #         email_message = f"Your new generated password is {new_password}"
+    #         send_mail("!!!Password changes!!!", email_message, "tiktok@gmail.com", [user.email, ])
+
+    #         return Response(message)
 
 class NewPasswordView(APIView):
     def get(self, request, activation_code):

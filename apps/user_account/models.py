@@ -130,7 +130,7 @@ class User(AbstractUser):
         Do you want to change password?
         Confirm password changes: {activation_url}
         """
-        send_mail("Please confirm", message, "tiktok@gmail.com", [self.email, ])
+        send_mail("Please confirm your new changes", message, "tiktok@gmail.com", [self.email, ])
 
 
     def __str__(self) -> str:
