@@ -12,6 +12,7 @@ class PostSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         rep = super().to_representation(instance)
         rep['user'] = instance.user.username
+        rep['user_id'] = instance.user.id
         # if instance.user.image:
         #     rep['user_image'] = instance.user.image
         # else:
