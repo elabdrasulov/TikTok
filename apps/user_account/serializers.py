@@ -138,19 +138,38 @@ class LogoutSerializer(serializers.Serializer):
             self.fail('bad_token')
 
 class FollowingSerializer(serializers.ModelSerializer):
+    following_user_image = serializers.ImageField(source='following_user_id.image', required=False)
+
     class Meta:
         model = UserFollowing
         fields = [
-            "id", "following_user_id", "created", 
+            "id", 
+            "following_user_id", 
+            "following_user_image",
+            "created", 
         ]
     
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['following_username'] = instance.following_user_id.username
+        return rep
 
 class FollowersSerializer(serializers.ModelSerializer):
+    user_image = serializers.ImageField(source='user_id.image', required=False)
+
     class Meta:
         model = UserFollowing
         fields = [
-            "id", "user_id", "created",
+            "id", 
+            "user_id",
+            "user_image",
+            "created",
         ]
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['username'] = instance.user_id.username
+        return rep
 
 class ProfileSerializer(serializers.ModelSerializer):
 
